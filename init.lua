@@ -19,13 +19,32 @@ require('lazy').setup({
   --'tpope/vim-fugitive',
   --'tpope/vim-rhubarb',
   'mbbill/undotree',
-  'tpope/vim-surround',
+  {
+    'tpope/vim-surround',
+    event = "VeryLazy"
+  },
   'xiyaowong/transparent.nvim',
   -- Detect tabstop and shiftwidth automatically
+  {
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+    opts = {}
+  },
   'tpope/vim-sleuth',
   'theprimeagen/harpoon',
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    event = "VeryLazy",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+      "MunifTanjim/nui.nvim",
+      -- "3rd/image.nvim", -- Optional image support in preview window: See `# Preview Mode` for more information
+    }
+  },
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
@@ -176,15 +195,15 @@ require('lazy').setup({
     opts = {},
     -- stylua: ignore
     keys = {
-      { "<leader>s", mode = { "n", "x", "o" }, function() require("flash").jump() end,   desc = "Flash" },
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end,   desc = "Flash" },
       {
-        "<leader>S",
+        "S",
         mode = { "n", "x", "o" },
         function() require("flash").treesitter() end,
         desc =
         "Flash Treesitter"
       },
-      { "r",         mode = "o",               function() require("flash").remote() end, desc = "Remote Flash" },
+      { "r", mode = "o",               function() require("flash").remote() end, desc = "Remote Flash" },
       {
         "<leader>sr",
         mode = { "o", "x" },
@@ -283,6 +302,7 @@ vim.opt.updatetime = 50
 
 vim.opt.colorcolumn = "120"
 
+vim.keymap.set('n', '<leader>ft', '<Cmd>Neotree toggle<CR>')
 -- [[ Basic Keymaps ]]
 -- [[ ThePrimeGen remap]]
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
@@ -302,6 +322,7 @@ vim.keymap.set("i", "<C-c>", "<Esc>")
 vim.keymap.set("n", "Q", "<nop>")
 vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>")
 vim.keymap.set("n", "<leader>f", vim.lsp.buf.format)
+vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
 
 vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
 vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
@@ -375,12 +396,13 @@ vim.keymap.set('n', '<leader>pr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
+
     ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc',
       'vim',
       'bash', 'yaml' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = true,
+    auto_install = false,
 
     highlight = { enable = true },
     indent = { enable = true },
@@ -565,10 +587,10 @@ local ui = require("harpoon.ui")
 vim.keymap.set("n", "<leader>ea", mark.add_file)
 vim.keymap.set("n", "<C-e>", ui.toggle_quick_menu)
 
-vim.keymap.set("n", "<C-1>", function() ui.nav_file(1) end)
-vim.keymap.set("n", "<C-2>", function() ui.nav_file(2) end)
-vim.keymap.set("n", "<C-3>", function() ui.nav_file(3) end)
-vim.keymap.set("n", "<C-4>", function() ui.nav_file(4) end)
+vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end)
+vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end)
+vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end)
+vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end)
 
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
