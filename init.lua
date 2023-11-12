@@ -46,8 +46,25 @@ require('lazy').setup({
     }
   },
   {
+    "norcalli/nvim-colorizer.lua"
+  },
+  {
+    "roobert/tailwindcss-colorizer-cmp.nvim",
+    -- optionally, override the default options:
+    config = function()
+      require("tailwindcss-colorizer-cmp").setup({
+        color_square_width = 2,
+      })
+    end
+  },
+  {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
+    opts = {
+      servers = {
+        tailwindcss = {},
+      },
+    },
     dependencies = {
       -- Automatically install LSPs to stdpath for neovim
       'williamboman/mason.nvim',
@@ -367,7 +384,19 @@ require('telescope').setup {
     },
   },
 }
-
+require 'colorizer'.setup({
+  user_default_options = {
+    tailwind = true,
+  },
+})
+require("cmp").config.formatting = {
+  format = require("tailwindcss-colorizer-cmp").formatter
+}
+-- require('colorizer').setup({
+--   'css',
+--   'javascript',
+--   html = { mode = 'background' },
+-- }, { mode = 'foreground' })
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 
@@ -402,7 +431,10 @@ vim.defer_fn(function()
       'bash', 'yaml' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = false,
+    auto_install = true,
+    sync_install = false,
+    ignore_install = {},
+    modules = {},
 
     highlight = { enable = true },
     indent = { enable = true },
@@ -547,7 +579,7 @@ local servers = {
 
   lua_ls = {
     Lua = {
-      workspace = { checkThirdParty = false },
+      workspace = { checkThirdParty = "Disable" },
       telemetry = { enable = false },
     },
   },
