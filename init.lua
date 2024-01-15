@@ -26,6 +26,31 @@ require('lazy').setup({
         opts = {
         },
     },
+    {
+        'Exafunction/codeium.vim',
+        config = function()
+            -- Change '<C-g>' here to any keycode you like.
+            vim.keymap.set('i', '<C-g>', function() return vim.fn['codeium#Accept']() end, { expr = true })
+            vim.keymap.set('i', '<c-;>', function() return vim.fn['codeium#CycleCompletions'](1) end, { expr = true })
+            vim.keymap.set('i', '<c-,>', function() return vim.fn['codeium#CycleCompletions'](-1) end, { expr = true })
+            vim.keymap.set('i', '<c-x>', function() return vim.fn['codeium#Clear']() end, { expr = true })
+        end
+    },
+
+    {
+        "jackMort/ChatGPT.nvim",
+        event = "VeryLazy",
+        config = function()
+            require("chatgpt").setup({
+                api_key_cmd = "pwsh.exe /c echo $CHAT_GPT_KEY",
+            })
+        end,
+        dependencies = {
+            "MunifTanjim/nui.nvim",
+            "nvim-lua/plenary.nvim",
+            "nvim-telescope/telescope.nvim"
+        }
+    },
     -- Formmater
     -- {
     --     'stevearc/conform.nvim',
@@ -575,10 +600,26 @@ require('which-key').register {
     ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
     ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
     ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+    c = {
+        name = "ChatGPT",
+        c = { "<cmd>ChatGPT<CR>", "ChatGPT" },
+        e = { "<cmd>ChatGPTEditWithInstruction<CR>", "Edit with instruction", mode = { "n", "v" } },
+        g = { "<cmd>ChatGPTRun grammar_correction<CR>", "Grammar Correction", mode = { "n", "v" } },
+        t = { "<cmd>ChatGPTRun translate<CR>", "Translate", mode = { "n", "v" } },
+        k = { "<cmd>ChatGPTRun keywords<CR>", "Keywords", mode = { "n", "v" } },
+        d = { "<cmd>ChatGPTRun docstring<CR>", "Docstring", mode = { "n", "v" } },
+        t = { "<cmd>ChatGPTRun add_tests<CR>", "Add Tests", mode = { "n", "v" } },
+        o = { "<cmd>ChatGPTRun optimize_code<CR>", "Optimize Code", mode = { "n", "v" } },
+        s = { "<cmd>ChatGPTRun summarize<CR>", "Summarize", mode = { "n", "v" } },
+        f = { "<cmd>ChatGPTRun fix_bugs<CR>", "Fix Bugs", mode = { "n", "v" } },
+        x = { "<cmd>ChatGPTRun explain_code<CR>", "Explain Code", mode = { "n", "v" } },
+        r = { "<cmd>ChatGPTRun roxygen_edit<CR>", "Roxygen Edit", mode = { "n", "v" } },
+        l = { "<cmd>ChatGPTRun code_readability_analysis<CR>", "Code Readability Analysis", mode = { "n", "v" } },
+    },
 }
 require('tailwind-sorter').setup({
-    on_save_enabled = true,                                                                                                -- If `true`, automatically enables on save sorting.
-    on_save_pattern = { '*.svelte', '*.html', '*.js', '*.jsx', '*.tsx', '*.twig', '*.hbs', '*.php', '*.heex', '*.astro' }, -- The file patterns to watch and sort.
+    on_save_enabled = true,                                                                                    -- If `true`, automatically enables on save sorting.
+    on_save_pattern = { '*.html', '*.js', '*.jsx', '*.tsx', '*.twig', '*.hbs', '*.php', '*.heex', '*.astro' }, -- The file patterns to watch and sort.
     node_path = 'node',
 })
 -- matroubleson-lspconfig requires that these setup functions are called in this order
@@ -938,14 +979,34 @@ vim.keymap.set('n', '<leader>oe', vim.diagnostic.open_float, { desc = 'Open floa
 vim.keymap.set('n', '<leader>oq', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 local harpoon = require("harpoon")
 harpoon:setup()
+local conf = require("telescope.config").values
+local function toggle_telescope(harpoon_files)
+    local file_paths = {}
+    for _, item in ipairs(harpoon_files.items) do
+        table.insert(file_paths, item.value)
+    end
 
+    require("telescope.pickers").new({}, {
+        prompt_title = "Harpoon",
+        finder = require("telescope.finders").new_table({
+            results = file_paths,
+        }),
+        previewer = conf.file_previewer({}),
+        sorter = conf.generic_sorter({}),
+    }):find()
+end
 vim.keymap.set("n", "<leader>ea", function() harpoon:list():append() end)
-vim.keymap.set("n", "<C-e>", function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
+vim.keymap.set("n", "<C-e>", function() toggle_telescope(harpoon:list()) end,
+    { desc = "Open harpoon window" })
 
-vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end)
-vim.keymap.set("n", "<leader>2", function() harpoon:list().select(2) end)
-vim.keymap.set("n", "<leader>3", function() harpoon:list().select(2) end)
-vim.keymap.set("n", "<leader>4", function() harpoon:list().select(2) end)
+-- vim.keymap.set("n", "<leader>1", function() harpoon:list():select(1) end)
+-- vim.keymap.set("n", "<leader>2", function() harpoon:list().select(2) end)
+-- vim.keymap.set("n", "<leader>3", function() harpoon:list().select(3) end)
+-- vim.keymap.set("n", "<leader>4", function() harpoon:list().select(4) end)
+vim.keymap.set("n", "<C-h>", function() harpoon:list():select(1) end)
+vim.keymap.set("n", "<C-t>", function() harpoon:list():select(2) end)
+vim.keymap.set("n", "<C-n>", function() harpoon:list():select(3) end)
+vim.keymap.set("n", "<C-s>", function() harpoon:list():select(4) end)
 --
 -- Trouble.nvim keymap
 vim.keymap.set("n", "<leader>xx", function() require("trouble").toggle() end)
