@@ -7,22 +7,24 @@ require("custom.rainbow")
 require("custom.harpoon")
 require("custom.remap")
 require("custom.lsp")
+require("custom.mini")
+require("custom.trouble")
 
 -- [[ Highlight on yank ]]
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
 vim.api.nvim_create_autocmd('TextYankPost', {
-    callback = function()
-        vim.highlight.on_yank()
-    end,
-    group = highlight_group,
-    pattern = '*',
+  callback = function()
+    vim.highlight.on_yank()
+  end,
+  group = highlight_group,
+  pattern = '*',
 })
 
 -- document existing key chains
 require('tailwind-sorter').setup({
-    on_save_enabled = true,                                                                                        -- If `true`, automatically enables on save sorting.
-    on_save_pattern = { '*.html', '*.jsx', '*.tsx', '*.twig', '*.hbs', '*.php', '*.heex', '*.astro', '*.svelte' }, -- The file patterns to watch and sort.
-    node_path = 'node',
+  on_save_enabled = true,                                                                                        -- If `true`, automatically enables on save sorting.
+  on_save_pattern = { '*.html', '*.jsx', '*.tsx', '*.twig', '*.hbs', '*.php', '*.heex', '*.astro', '*.svelte' }, -- The file patterns to watch and sort.
+  node_path = 'node',
 })
 require('neodev').setup()
 
