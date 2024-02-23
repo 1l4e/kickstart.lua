@@ -8,7 +8,6 @@ require("custom.harpoon")
 require("custom.remap")
 require("custom.lsp")
 require("custom.mini")
-require("custom.trouble")
 
 -- [[ Highlight on yank ]]
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })

@@ -1,6 +1,7 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
+-- vim.g.loaded_netrwPlugin = 1
+-- vim.g.loaded_netrw = 1
 -- [[ Setting options ]]
 vim.o.clipboard = 'unnamedplus'
 
@@ -44,6 +45,7 @@ vim.opt.hlsearch = false
 vim.opt.incsearch = true
 
 vim.opt.termguicolors = true
+vim.api.nvim_set_hl(0, "LineNr", { fg = "#d7af5f" })
 
 vim.opt.scrolloff = 8
 vim.opt.signcolumn = "yes"
