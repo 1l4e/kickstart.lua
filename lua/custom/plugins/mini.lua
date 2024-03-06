@@ -30,5 +30,5 @@ return {
         end,
     },
     { 'echasnovski/mini.surround', version = '*' },
-    { 'echasnovski/mini.pairs' },
+    -- { 'echasnovski/mini.pairs' },
 }
