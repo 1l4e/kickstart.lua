@@ -2,11 +2,11 @@ require("custom.set")
 require("custom.lazy")
 require("custom.which-key")
 require("custom.telescope")
-require("custom.treesitter")
+-- require("custom.treesitter")
 require("custom.rainbow")
 require("custom.harpoon")
 require("custom.remap")
-require("custom.lsp")
+-- require("custom.lsp")
 require("custom.mini")
 
 -- [[ Highlight on yank ]]
@@ -20,11 +20,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- document existing key chains
-require('tailwind-sorter').setup({
-  on_save_enabled = true,                                                                                        -- If `true`, automatically enables on save sorting.
-  on_save_pattern = { '*.html', '*.jsx', '*.tsx', '*.twig', '*.hbs', '*.php', '*.heex', '*.astro', '*.svelte' }, -- The file patterns to watch and sort.
-  node_path = 'node',
-})
 require('neodev').setup()
 
 

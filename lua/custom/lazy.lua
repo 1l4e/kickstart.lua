@@ -23,129 +23,7 @@ require('lazy').setup({
         branch = 'harpoon2',
         dependencies = { "nvim-tree/plenary.nvim" }
     },
-    {
-        'laytan/tailwind-sorter.nvim',
-        dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-lua/plenary.nvim' },
-        build = 'cd formatter && npm i && npm run build',
-        config = true,
-    },
-    -- 'nvim-pack/nvim-spectre',
-    {
-        "nvim-neo-tree/neo-tree.nvim",
-        branch = "v3.x",
-        cmd = "Neotree",
-        dependencies = {
-            "nvim-lua/plenary.nvim",
-            "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
-            "MunifTanjim/nui.nvim",
-            "3rd/image.nvim",
-        },
-        keys = {
-            {
-                "<leader>ft",
-                function()
-                    require("neo-tree.command").execute({ toggle = true, dir = Util.root() })
-                end,
-                desc = "Explorer NeoTree (root dir)",
-            },
-            {
-                "<leader>pv",
-                function()
-                    require("neo-tree.command").execute({ toggle = true, dir = vim.loop.cwd() })
-                end,
-                desc = "Explorer NeoTree (cwd)",
-            },
-            { "<leader>e", "<leader>fe", desc = "Explorer NeoTree (root dir)", remap = true },
-            { "<leader>E", "<leader>fE", desc = "Explorer NeoTree (cwd)",      remap = true },
-            {
-                "<leader>ge",
-                function()
-                    require("neo-tree.command").execute({ source = "git_status", toggle = true })
-                end,
-                desc = "Git explorer",
-            },
-            {
-                "<leader>be",
-                function()
-                    require("neo-tree.command").execute({ source = "buffers", toggle = true })
-                end,
-                desc = "Buffer explorer",
-            },
-        },
-        deactivate = function()
-            vim.cmd([[Neotree close]])
-        end,
-        init = function()
-            if vim.fn.argc(-1) == 1 then
-                local stat = vim.loop.fs_stat(vim.fn.argv(0))
-                if stat and stat.type == "directory" then
-                    require("neo-tree")
-                end
-            end
-        end,
-        opts = {
-            sources = { "filesystem", "buffers", "git_status", "document_symbols" },
-            open_files_do_not_replace_types = { "terminal", "Trouble", "trouble", "qf", "Outline" },
-            filesystem = {
-                bind_to_cwd = false,
-                follow_current_file = { enabled = true },
-                use_libuv_file_watcher = true,
-            },
-            window = {
-                mappings = {
-                    ["<space>"] = "none",
-                    ["Y"] = function(state)
-                        local node = state.tree:get_node()
-                        local path = node:get_id()
-                        vim.fn.setreg("+", path, "c")
-                    end,
-                },
-            },
-            default_component_configs = {
-                indent = {
-                    with_expanders = true, -- if nil and file nesting is enabled, will enable expanders
-                    expander_collapsed = "",
-                    expander_expanded = "",
-                    expander_highlight = "NeoTreeExpander",
-                },
-            },
-        },
-        config = function(_, opts)
-            local function on_move(data)
-                Util.lsp.on_rename(data.source, data.destination)
-            end
-
-            local events = require("neo-tree.events")
-            opts.event_handlers = opts.event_handlers or {}
-            vim.list_extend(opts.event_handlers, {
-                { event = events.FILE_MOVED,   handler = on_move },
-                { event = events.FILE_RENAMED, handler = on_move },
-            })
-            opts.update_focused_file = {
-                enable = true,
-            }
-            require("neo-tree").setup(opts)
-            vim.api.nvim_create_autocmd("TermClose", {
-                pattern = "*lazygit",
-                callback = function()
-                    if package.loaded["neo-tree.sources.git_status"] then
-                        require("neo-tree.sources.git_status").refresh()
-                    end
-                end,
-            })
-            vim.api.nvim_create_autocmd({ "colorscheme" },
-                {
-                    desc = "Transparent background",
-                    group = vim.api.nvim_create_augroup("transparent_background", { clear = true }),
-                    pattern = "*",
-                    callback = function()
-                        vim.api.nvim_set_hl(0, "Normal", { bg = "NONE", ctermbg = "NONE" })
-                        vim.api.nvim_set_hl(0, "NeoTreeNormal", { bg = "none", ctermbg = "NONE" })
-                        vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { bg = "none", ctermbg = "NONE" })
-                    end
-                })
-        end,
-    },
+    'nvim-pack/nvim-spectre',
     {
         "NvChad/nvim-colorizer.lua",
         opts = {
@@ -164,9 +42,85 @@ require('lazy').setup({
         dependencies = {
             'williamboman/mason.nvim',
             'williamboman/mason-lspconfig.nvim',
+            'williamboman/mason-tool-installer.nvim',
             { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
             'folke/neodev.nvim',
         },
+        config = function()
+            vim.api.nvim_create_autocmd('LspAttach', {
+                group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
+                callback = function(event)
+                    local map = function(keys, func, desc)
+                        vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+                    end
+
+                    map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+                    map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+                    map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+                    map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+                    map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+                    map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
+                    map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+                    map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+                    map('K', vim.lsp.buf.hover, 'Hover Documentation')
+                    map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+                    local client = vim.lsp.get_client_by_id(event.data.client_id)
+                    if client and client.server_capabilities.documentHighlightProvider then
+                        vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+                            buffer = event.buf,
+                            callback = vim.lsp.buf.document_highlight,
+                        })
+
+                        vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+                            buffer = event.buf,
+                            callback = vim.lsp.buf.clear_references,
+                        })
+                    end
+                end,
+            })
+
+            local capabilities = vim.lsp.protocol.make_client_capabilities()
+            capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
+
+            local servers = {
+
+                lua_ls = {
+                    settings = {
+                        Lua = {
+                            runtime = { version = 'LuaJIT' },
+                            workspace = {
+                                checkThirdParty = false,
+                                library = {
+                                    '${3rd}/luv/library',
+                                    unpack(vim.api.nvim_get_runtime_file('', true)),
+                                },
+                            },
+                            completion = {
+                                callSnippet = 'Replace',
+                            },
+                        },
+                    },
+                },
+            }
+
+            require('mason').setup()
+
+            local ensure_installed = vim.tbl_keys(servers or {})
+            vim.list_extend(ensure_installed, {
+                'stylua', -- Used to format lua code
+            })
+            require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+
+            require('mason-lspconfig').setup {
+                handlers = {
+                    function(server_name)
+                        local server = servers[server_name] or {}
+                        server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+                        require('lspconfig')[server_name].setup(server)
+                    end,
+                },
+            }
+        end,
     },
 
     {
@@ -186,20 +140,6 @@ require('lazy').setup({
 
     { 'folke/which-key.nvim',  opts = {} },
 
-    -- {
-    --   -- Theme inspired by Atom
-    --   'joshdick/onedark.vim',
-    --   name = "onedark",
-    --   priority = 1000,
-    --   config = function()
-    --     vim.cmd.colorscheme 'onedark'
-    --     vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
-    --     vim.api.nvim_set_hl(0, "NormalFloat", { bg = "none" })
-    --   end,
-    -- },
-    -- {
-    --   'navarasu/onedark.nvim',
-    -- },
     {
         "folke/tokyonight.nvim",
         lazy = false,
@@ -218,9 +158,7 @@ require('lazy').setup({
         end,
     },
     {
-        -- Set lualine as statusline
         'nvim-lualine/lualine.nvim',
-        -- See `:help lualine.txt`
         opts = {
             options = {
                 icons_enabled = true,
@@ -271,68 +209,13 @@ require('lazy').setup({
         },
         main = "ibl",
     },
-    -- {
-    --   "akinsho/bufferline.nvim",
-    --   event = "VeryLazy",
-    --   keys = {
-    --     { "<leader>bp", "<Cmd>BufferLineTogglePin<CR>",            desc = "Toggle pin" },
-    --     { "<leader>bP", "<Cmd>BufferLineGroupClose ungrouped<CR>", desc = "Delete non-pinned buffers" },
-    --     { "<leader>bo", "<Cmd>BufferLineCloseOthers<CR>",          desc = "Delete other buffers" },
-    --     { "<leader>br", "<Cmd>BufferLineCloseRight<CR>",           desc = "Delete buffers to the right" },
-    --     { "<leader>bl", "<Cmd>BufferLineCloseLeft<CR>",            desc = "Delete buffers to the left" },
-    --     { "<S-h>",      "<cmd>BufferLineCyclePrev<cr>",            desc = "Prev buffer" },
-    --     { "<S-l>",      "<cmd>BufferLineCycleNext<cr>",            desc = "Next buffer" },
-    --     { "[b",         "<cmd>BufferLineCyclePrev<cr>",            desc = "Prev buffer" },
-    --     { "]b",         "<cmd>BufferLineCycleNext<cr>",            desc = "Next buffer" },
-    --   },
-    --   opts = {
-    --     options = {
-    --       -- stylua: ignore
-    --       close_command = function(n) require("mini.bufremove").delete(n, false) end,
-    --       -- stylua: ignore
-    --       right_mouse_command = function(n) require("mini.bufremove").delete(n, false) end,
-    --       diagnostics = "nvim_lsp",
-    --       always_show_bufferline = false,
-    --       -- diagnostics_indicator = function(_, _, diag)
-    --       --     local icons = require("lazyvim.config").icons.diagnostics
-    --       --     local ret = (diag.error and icons.Error .. diag.error .. " " or "")
-    --       --         .. (diag.warning and icons.Warn .. diag.warning or "")
-    --       --     return vim.trim(ret)
-    --       -- end,
-    --       offsets = {
-    --         {
-    --           filetype = "neo-tree",
-    --           text = "Neo-tree",
-    --           highlight = "Directory",
-    --           text_align = "left",
-    --         },
-    --       },
-    --     },
-    --   },
-    --   config = function(_, opts)
-    --     require("bufferline").setup(opts)
-    --     -- Fix bufferline when restoring a session
-    --     vim.api.nvim_create_autocmd("BufAdd", {
-    --       callback = function()
-    --         vim.schedule(function()
-    --           pcall(nvim_bufferline)
-    --         end)
-    --       end,
-    --     })
-    --   end,
-    -- },
-    -- "gc" to comment visual regions/lines
     { 'numToStr/Comment.nvim', opts = {} },
 
-    -- Fuzzy Finder (files, lsp, etc)
     {
         'nvim-telescope/telescope.nvim',
         branch = '0.1.x',
         dependencies = {
             'nvim-lua/plenary.nvim',
-            -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-            -- Only load if `make` is available. Make sure you have the system
-            -- requirements installed.
             {
                 'nvim-telescope/telescope-fzf-native.nvim',
                 -- NOTE: If you are having trouble with this installation,
@@ -342,15 +225,20 @@ require('lazy').setup({
                     return vim.fn.executable 'make' == 1
                 end,
             },
+            'nvim-telescope/telescope-ui-select.nvim',
+            { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
         },
-    },
-    {
-        -- Highlight, edit, and navigate code
-        'nvim-treesitter/nvim-treesitter',
-        -- dependencies = {
-        --     'nvim-treesitter/nvim-treesitter-textobjects',
-        -- },
-        build = ':TSUpdate',
+        config = function()
+            require('telescope').setup {
+                extensions = {
+                    ['ui-select'] = {
+                        require('telescope.themes').get_dropdown(),
+                    }
+                }
+            }
+            pcall(require('telescope').load_extension, 'fzf')
+            pcall(require('telescope').load_extension, 'ui-select')
+        end,
     },
     'HiPhish/rainbow-delimiters.nvim',
     {
@@ -473,13 +361,6 @@ require('lazy').setup({
         },
     },
     {
-        "dstein64/vim-startuptime",
-        cmd = "StartupTime",
-        config = function()
-            vim.g.startuptime_tries = 10
-        end,
-    },
-    {
         "folke/todo-comments.nvim",
         cmd = { "TodoTrouble", "TodoTelescope" },
         event = "VeryLazy",
@@ -495,7 +376,6 @@ require('lazy').setup({
         },
     },
     require 'kickstart.plugins.autoformat',
-    -- require 'kickstart.plugins.debug',
 
     { import = 'custom.plugins' },
     { import = 'custom.return' },

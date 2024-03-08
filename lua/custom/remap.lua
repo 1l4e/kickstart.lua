@@ -17,7 +17,7 @@ vim.keymap.set('n', '<leader>fs', '<cmd>lua require("spectre").open_file_search(
 -- [[ ThePrimeGen remap]]
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 -- vim.keymap.set("n", "<leader>pv", '<cmd>:Neotree position=current<CR>')
--- vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 
 vim.keymap.set("x", "<leader>p", [["_dP]])
 
